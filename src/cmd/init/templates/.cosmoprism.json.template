@@ -1,0 +1,9 @@
+{
+  "engine": "postgres",
+  "centralDatabaseUrl": "postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]",
+  "tenantTable": {
+    "name": "tenant",
+    "idAttributeName": "id",
+    "databaseUrlAttributeName": "db_url"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "files": {
+    "package.json": "./",
+    "./src/cmd/init/templates": "./cmd/init/templates"
+  },
+  "tailwind": false,
+  "exclude": {
+    "extensions": []
+  }
+}

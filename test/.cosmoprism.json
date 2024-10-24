@@ -1,0 +1,8 @@
+{
+  "centralDatabaseUrl": "postgresql://root:root@localhost:5432/cosmoprism",
+  "tenantTable": {
+    "name": "tenant",
+    "idAttributeName": "id",
+    "databaseUrlAttributeName": "db_url"
+  }
+}
