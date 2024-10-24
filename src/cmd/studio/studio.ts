@@ -2,6 +2,7 @@ import { spawnSync } from "child_process";
 import inquirer from "inquirer";
 import path from "path";
 import { Sequelize } from "sequelize";
+import * as fs from 'node:fs/promises';
 
 interface StudioCommandTenant { 
   mode: 'tenant', 
@@ -59,16 +60,20 @@ export const studio = async (command: StudioCommandTenant | StudioCommandCentral
 // TODO: move from here
 const chooseTenantPrompt = async (): Promise<string> => {
   // TODO: retrieve tenants
-  const sequelize = new Sequelize('postgresql://root:root@localhost:5432/cosmoprism');
-  const queryExecution = await sequelize.query("SELECT * FROM tenant;", { logging: false });
+  const configFilePath = path.join('.cosmoprism.json');
+  const config = JSON.parse(await fs.readFile(configFilePath, 'utf-8'));
+   
+  const sequelize = new Sequelize(config.centralDatabaseUrl);
+  const queryExecution = await sequelize.query(`SELECT * FROM "${config.tenantTable.name}";`, { logging: false });
   const queryResult = queryExecution[0];
+  
   
   const res = await inquirer.prompt(
     { 
       name: 'tenantUrl',
       type: 'select', 
       message: 'Choose a tenant', 
-      choices: queryResult.map((item: any) => ({ name: item.db_url, value: item.db_url, description: item.id })) 
+      choices: queryResult.map((item: any) => ({ name: item[config.tenantTable.databaseUrlAttributeName], value: item[config.tenantTable.databaseUrlAttributeName], description: item[config.tenantTable.idAttributeName] }))
     }
   );
 
