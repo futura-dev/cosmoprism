@@ -1,0 +1,43 @@
+{
+  "name": "@futura-dev/cosmoprism",
+  "version": "0.0.0",
+  "main": "dist/cli.js",
+  "files": [
+    "/dist"
+  ],
+  "bin": {
+    "@futura-dev/cosmoprism": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "rimraf dist && cosmofactory build",
+    "release": "cosmodrome release",
+    "cli": "node dist/cli.js",
+    "cli:dev": "npm run build && node dist/cli.js",
+    "lint": "eslint ./src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "lint:beautify": "npm run lint:fix && prettier ./src --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "inquirer": "^12.0.0",
+    "mysql2": "^3.11.3",
+    "pg": "^8.13.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.4"
+  },
+  "devDependencies": {
+    "@futura-dev/cosmofactory": "^0.4.0",
+    "@futura-dev/eslint-config-typescript": "^1.0.1",
+    "@types/commander": "^2.12.2",
+    "@types/node": "^22.7.5",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

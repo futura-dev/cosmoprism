@@ -1,0 +1,4 @@
+/* eslint-disable no-undef */
+{
+  "extends": ["@futura-dev/typescript/.eslintrc.js"]
+}
