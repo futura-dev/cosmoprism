@@ -1,8 +1,21 @@
 {
   "name": "@futura-dev/cosmoprism",
   "version": "0.0.0",
-  "main": "dist/cli.js",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/futura-dev/cosmoprism"
+  },
+  "description": "🔺🧊 CLI to manage multitenancy with prisma ORM and PostgeSQL database",
+  "author": {
+    "name": "Futura",
+    "url": "https://github.com/futura-dev",
+    "email": "opensource@futura-dev.com"
+  },
+  "homepage": "https://github.com/futura-dev/cosmoprism",
+  "license": "MIT",
   "files": [
+    "/bin",
     "/dist"
   ],
   "bin": {
@@ -17,10 +30,6 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:beautify": "npm run lint:fix && prettier ./src --write"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "commander": "^12.1.0",
     "inquirer": "^12.0.0",
@@ -30,6 +39,7 @@
     "sequelize": "^6.37.4"
   },
   "devDependencies": {
+    "@futura-dev/cosmodrome": "^1.5.0-alpha.3",
     "@futura-dev/cosmofactory": "^0.4.0",
     "@futura-dev/eslint-config-typescript": "^1.0.1",
     "@types/commander": "^2.12.2",
@@ -39,5 +49,11 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "keywords": [
+    "cli",
+    "prisma",
+    "multitenant",
+    "multitenancy"
+  ]
 }

@@ -14,7 +14,7 @@ import { migrate } from './cmd/migrate/migrate';
 // program definition
 program
   .name('cosmoprism')
-  .alias('cpsm') // TODO: choose alias
+  .alias('cprism')
   .description('Cosmoprism 🔺🧊')
   .version(process.env.npm_package_version ?? '-');
 
