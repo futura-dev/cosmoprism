@@ -18,8 +18,6 @@ interface SeedCommandAll {
 export const seed = async (
   command: SeedCommandAll | SeedCommandCentral | SeedCommandTenant
 ): Promise<void> => {
-  console.log(`running db seed in '${command.mode}' mode !`);
-
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning db seed for central ...`);
     // run 'npx ts-node prisma/central/seed.ts'
@@ -77,6 +75,7 @@ const chooseTenantPrompt = async (): Promise<string[]> => {
       required: true,
       instructions: true,
       message: "Choose a tenant",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       choices: queryResult.map((item: any) => ({
         name: item[config.tenantTable.databaseUrlAttributeName],
         value: item[config.tenantTable.databaseUrlAttributeName],

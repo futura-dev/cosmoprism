@@ -30,8 +30,6 @@ interface DevCommandAll {
 export const dev = async (
   command: DevCommandAll | DevCommandCentral | DevCommandTenant
 ): Promise<void> => {
-  console.log(`running 'migrate dev' in '${command.mode}' mode !`);
-
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning 'migrate dev' for central ...`);
     // run 'npx prisma migrate dev --schema=./prisma/central/schema.prisma'

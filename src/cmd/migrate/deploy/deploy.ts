@@ -18,8 +18,6 @@ interface DeployCommandAll {
 export const deploy = async (
   command: DeployCommandAll | DeployCommandCentral | DeployCommandTenant
 ): Promise<void> => {
-  console.log(`running 'migrate deploy' in '${command.mode}' mode !`);
-
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning 'migrate deploy' for central ...`);
     // run 'npx prisma migrate deploy --schema=./prisma/central/schema.prisma'

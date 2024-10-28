@@ -27,8 +27,6 @@ interface ResetCommandAll {
 export const reset = async (
   command: ResetCommandAll | ResetCommandCentral | ResetCommandTenant
 ): Promise<void> => {
-  console.log(`running 'migrate reset' in '${command.mode}' mode !`);
-
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning 'migrate reset' for central ...`);
     // run 'npx prisma migrate reset --schema=./prisma/central/schema.prisma'
