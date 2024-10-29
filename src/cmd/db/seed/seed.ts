@@ -20,9 +20,9 @@ export const seed = async (
 ): Promise<void> => {
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning db seed for central ...`);
-    // run 'npx ts-node prisma/central/seed.ts'
+    // run 'npx tsx prisma/central/seed.ts'
     const centralSeedPath = path.join("prisma", "central", "seed.ts");
-    spawnSync("npx", ["ts-node", centralSeedPath], {
+    spawnSync("npx", ["tsx", centralSeedPath], {
       shell: true,
       stdio: "inherit",
       env: { ...process.env },
@@ -41,8 +41,8 @@ export const seed = async (
 
     const tenantSeedPath = path.join("prisma", "tenant", "seed.ts");
     for (const url of tenantUrls) {
-      // run 'npx ts-node prisma/tenant/seed.ts' with 'DATABASE_TENANT_URL' as current tenant url
-      spawnSync("npx", ["ts-node", tenantSeedPath], {
+      // run 'npx tsx prisma/tenant/seed.ts' with 'DATABASE_TENANT_URL' as current tenant url
+      spawnSync("npx", ["tsx", tenantSeedPath], {
         shell: true,
         stdio: "inherit",
         env: { ...process.env, DATABASE_TENANT_URL: url },
