@@ -89,7 +89,7 @@ const chooseTenantPrompt = async (): Promise<string[]> => {
 
   const sequelize = new Sequelize(config.centralDatabaseUrl);
   const queryExecution = await sequelize.query(
-    `SELECT * FROM ${config.tenantTable.name};`,
+    `SELECT * FROM "${config.tenantTable.name}";`,
     { logging: false }
   );
   const queryResult = queryExecution[0];
