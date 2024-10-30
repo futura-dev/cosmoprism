@@ -5,9 +5,9 @@ import { init } from "./cmd/init/init";
 import { generate } from "./cmd/generate/generate";
 import { validate } from "./cmd/validate/validate";
 import { format } from "./cmd/format/format";
-import { db } from "./cmd/db/db";
+import { db } from "./cmd/db";
 import { studio } from "./cmd/studio/studio";
-import { migrate } from "./cmd/migrate/migrate";
+import { migrate } from "./cmd/migrate";
 import { loadExternalEnv } from "./utils/functions";
 
 // TODO: add custom options processing

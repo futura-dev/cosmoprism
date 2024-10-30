@@ -27,9 +27,9 @@ interface DevCommandAll {
   skipGenerate?: boolean;
 }
 
-export const dev = async (
-  command: DevCommandAll | DevCommandCentral | DevCommandTenant
-): Promise<void> => {
+export type DevCommand = DevCommandAll | DevCommandCentral | DevCommandTenant;
+
+export const dev = async (command: DevCommand): Promise<void> => {
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning 'migrate dev' for central ...`);
     // run 'npx prisma migrate dev --schema=./prisma/central/schema.prisma'

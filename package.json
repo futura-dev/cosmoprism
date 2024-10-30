@@ -15,10 +15,11 @@
   "homepage": "https://github.com/futura-dev/cosmoprism",
   "license": "MIT",
   "files": [
-    "/bin",
     "/dist"
   ],
-  "main": "./dist/commands.js",
+  "exports": {
+    "./migrate": "./dist/cmd/migrate/index.js"
+  },
   "bin": {
     "@futura-dev/cosmoprism": "dist/cli.js"
   },

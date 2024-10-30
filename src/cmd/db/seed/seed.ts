@@ -15,9 +15,12 @@ interface SeedCommandAll {
   mode: "all";
 }
 
-export const seed = async (
-  command: SeedCommandAll | SeedCommandCentral | SeedCommandTenant
-): Promise<void> => {
+export type SeedCommand =
+  | SeedCommandAll
+  | SeedCommandCentral
+  | SeedCommandTenant;
+
+export const seed = async (command: SeedCommand): Promise<void> => {
   if (command.mode === "central" || command.mode === "all") {
     console.log(`\nrunning db seed for central ...`);
     // run 'npx tsx prisma/central/seed.ts'
