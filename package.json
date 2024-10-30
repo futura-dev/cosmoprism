@@ -18,6 +18,7 @@
     "/bin",
     "/dist"
   ],
+  "main": "./dist/commands.js",
   "bin": {
     "@futura-dev/cosmoprism": "dist/cli.js"
   },
