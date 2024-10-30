@@ -17,9 +17,7 @@
   "files": [
     "/dist"
   ],
-  "exports": {
-    "./migrate": "./dist/cmd/migrate/index.js"
-  },
+  "main": "./dist/",
   "bin": {
     "@futura-dev/cosmoprism": "dist/cli.js"
   },
