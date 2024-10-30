@@ -17,14 +17,12 @@
   "files": [
     "/dist"
   ],
-  "exports": {
-    "./migrate": "./dist/cmd/migrate/index.js"
-  },
+  "main": "./dist/",
   "bin": {
     "@futura-dev/cosmoprism": "dist/cli.js"
   },
   "scripts": {
-    "build": "cosmofactory build",
+    "build": "tsc",
     "release": "cosmodrome release",
     "cli": "node dist/cli.js",
     "cli:dev": "npm run build && node dist/cli.js",
@@ -43,7 +41,6 @@
   },
   "devDependencies": {
     "@futura-dev/cosmodrome": "^1.5.0-alpha.3",
-    "@futura-dev/cosmofactory": "^0.4.0",
     "@futura-dev/eslint-config-typescript": "^1.0.3",
     "@types/commander": "^2.12.5",
     "@types/node": "^22.8.1",
