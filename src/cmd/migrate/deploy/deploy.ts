@@ -3,6 +3,7 @@ import inquirer from "inquirer";
 import path from "path";
 import { Sequelize } from "sequelize";
 import * as fs from "node:fs/promises";
+import { loadConfiguration } from "../../../utils/load-configuration";
 
 interface DeployCommandTenant {
   mode: "tenant";
@@ -66,11 +67,12 @@ export const deploy = async (command: DeployCommand): Promise<void> => {
 
 // TODO: move from here
 const chooseTenantPrompt = async (): Promise<string[]> => {
-  // TODO: retrieve tenants
-  const configFilePath = path.join(".cosmoprism.json");
-  const config = JSON.parse(await fs.readFile(configFilePath, "utf-8"));
+  if (typeof process.env.COSMOPRISM_CENTRAL_DB_URL !== "string")
+    throw new Error("missing COSMOPRISM_CENTRAL_DB_URL in .env file");
 
-  const sequelize = new Sequelize(config.centralDatabaseUrl, {
+  const config = await loadConfiguration();
+
+  const sequelize = new Sequelize(process.env.COSMOPRISM_CENTRAL_DB_URL, {
     dialect: "postgres"
   });
   const queryExecution = await sequelize.query(
