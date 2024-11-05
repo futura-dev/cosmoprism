@@ -87,7 +87,9 @@ const chooseTenantPrompt = async (): Promise<string[]> => {
   const configFilePath = path.join(".cosmoprism.json");
   const config = JSON.parse(await fs.readFile(configFilePath, "utf-8"));
 
-  const sequelize = new Sequelize(config.centralDatabaseUrl);
+  const sequelize = new Sequelize(config.centralDatabaseUrl, {
+    dialect: "postgres"
+  });
   const queryExecution = await sequelize.query(
     `SELECT * FROM "${config.tenantTable.name}";`,
     { logging: false }
