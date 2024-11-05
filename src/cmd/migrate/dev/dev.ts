@@ -97,6 +97,9 @@ const chooseTenantPrompt = async (): Promise<string[]> => {
     { logging: false }
   );
   const queryResult = queryExecution[0];
+  if (!queryResult || queryResult.length === 0) {
+    return [];
+  }
 
   const res = await inquirer.prompt({
     tenantIds: {
