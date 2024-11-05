@@ -38,10 +38,15 @@ export const studio = async (
 
   if (command.mode === "tenant") {
     // choose tenant
-    const tenantUrl: string =
+    const tenantUrl: string | null =
       typeof command.tenant === "string"
         ? command.tenant
         : await chooseTenantPrompt();
+
+    if (tenantUrl === null) {
+      console.log(`\nno tenant found !`);
+      return;
+    }
 
     const tenantSchemaPath = path.join("prisma", "tenant", "schema.prisma");
     console.log(`\nrunning studio for 'tenant' ...`);
@@ -62,7 +67,7 @@ export const studio = async (
 };
 
 // TODO: move from here
-const chooseTenantPrompt = async (): Promise<string> => {
+const chooseTenantPrompt = async (): Promise<string | null> => {
   if (typeof process.env.COSMOPRISM_CENTRAL_DB_URL !== "string")
     throw new Error("missing COSMOPRISM_CENTRAL_DB_URL in .env file");
 
@@ -76,6 +81,9 @@ const chooseTenantPrompt = async (): Promise<string> => {
     { logging: false }
   );
   const queryResult = queryExecution[0];
+  if (!queryResult || queryResult.length === 0) {
+    return null;
+  }
 
   const res = await inquirer.prompt({
     name: "tenantUrl",
