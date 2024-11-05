@@ -1,8 +1,6 @@
 import { spawnSync } from "child_process";
-import inquirer from "inquirer";
 import path from "path";
 import { Sequelize } from "sequelize";
-import * as fs from "node:fs/promises";
 import { loadConfiguration } from "../../../utils/load-configuration";
 
 interface DeployCommandTenant {
@@ -42,7 +40,7 @@ export const deploy = async (command: DeployCommand): Promise<void> => {
     const tenantUrls: string[] =
       command.mode !== "all" && typeof command.tenant === "string"
         ? [command.tenant]
-        : await chooseTenantPrompt();
+        : await allTenants();
     console.log(
       `\nrunning 'migrate deploy' for ${tenantUrls.length} tenants ...\n`
     );
@@ -66,7 +64,7 @@ export const deploy = async (command: DeployCommand): Promise<void> => {
 };
 
 // TODO: move from here
-const chooseTenantPrompt = async (): Promise<string[]> => {
+const allTenants = async (): Promise<string[]> => {
   if (typeof process.env.COSMOPRISM_CENTRAL_DB_URL !== "string")
     throw new Error("missing COSMOPRISM_CENTRAL_DB_URL in .env file");
 
@@ -81,19 +79,7 @@ const chooseTenantPrompt = async (): Promise<string[]> => {
   );
   const queryResult = queryExecution[0];
 
-  const res = await inquirer.prompt({
-    tenantIds: {
-      type: "checkbox",
-      required: true,
-      instructions: true,
-      message: "Choose a tenant",
-      choices: queryResult.map((item: any) => ({
-        name: item[config.tenantTable.databaseUrlAttributeName],
-        value: item[config.tenantTable.databaseUrlAttributeName],
-        description: item[config.tenantTable.idAttributeName]
-      }))
-    }
-  });
-
-  return res.tenantIds;
+  return queryResult.map(
+    (item: any) => item[config.tenantTable.databaseUrlAttributeName]
+  );
 };
