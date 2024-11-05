@@ -52,4 +52,8 @@ export const init = async (): Promise<void> => {
   if (!fsSync.existsSync(tenantSeedPath)) {
     await fs.writeFile(tenantSeedPath, seedContent);
   }
+
+  console.log(
+    "\nSet the env variable $COSMOPRISM_CENTRAL_DB_URL in your .env file."
+  );
 };
