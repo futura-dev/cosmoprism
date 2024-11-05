@@ -45,7 +45,7 @@
     "@futura-dev/cosmodrome": "^1.5.0-alpha.3",
     "@futura-dev/eslint-config-typescript": "^1.0.3",
     "@types/commander": "^2.12.5",
-    "@types/node": "^22.8.1",
+    "@types/node": "^22.9.0",
     "copyfiles": "^2.4.1",
     "npm-check-updates": "^17.1.6",
     "rimraf": "^6.0.1",
