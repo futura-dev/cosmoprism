@@ -146,6 +146,8 @@ no value, opens no connection and `--all-tenants` does not apply.
 | `migrate dev [-n <name>] [--create-only]` | `-c` `-t` `--all-tenants` | generate + seed after each migration, opted out with `--skip-generate` / `--skip-seed` |
 | `migrate deploy` | `-c` `-t <url>` `--all-tenants` | the whole fleet in one command, without prompting |
 | `migrate reset [-f]` | `-c` `-t` `--all-tenants` | generate + seed after each reset, same two flags |
+| `migrate status` | `-c` `-t` `--all-tenants` | one report per database, and exit code 1 if any of them is behind |
+| `migrate diff [--script] [--exit-code]` | `-c` `-t` `--all-tenants` | `--from` / `--to` named once for both contexts |
 | `db seed` | `-c` `-t` `--all-tenants` | |
 | `generate` / `validate` / `format [--check]` | `-c` `-t` | |
 | `studio [-b <browser>] [-p <port>]` | `-c` or `-t` | |
@@ -161,11 +163,35 @@ npx @futura-dev/cosmoprism migrate deploy -c --all-tenants
 # one tenant only, by connection url
 npx @futura-dev/cosmoprism migrate deploy -t "postgresql://…"
 
+# is the whole fleet up to date? exits 1 when at least one database is not
+npx @futura-dev/cosmoprism migrate status -c --all-tenants
+# what a next migration would have to apply, as SQL
+npx @futura-dev/cosmoprism migrate diff -c --script
+
 npx @futura-dev/cosmoprism migrate reset -c -f
 npx @futura-dev/cosmoprism db seed --all-tenants
 npx @futura-dev/cosmoprism generate -c -t
 npx @futura-dev/cosmoprism studio -c
 ```
+
+#### Comparing schemas and databases
+
+`migrate diff` names its two ends the same way whatever the target, so one
+command reads the same for central and for every tenant:
+
+| source | what it is |
+|--------|------------|
+| `database` | the database of the selected target — one tenant at a time |
+| `schema` | the `schema.prisma` of the target's context |
+| `migrations` | the state that context's migrations directory builds |
+| `empty` | nothing at all |
+
+It defaults to `--from database --to schema`, the diff a next migration would
+have to apply. `--script` renders SQL instead of a summary, with each target
+announced as a SQL comment so the output stays executable, and `--exit-code`
+returns 2 when at least one selected database has a non-empty diff — which,
+together with the exit code of `migrate status`, is what lets CI fail on a
+schema that drifted from its databases.
 
 ### How it works
 

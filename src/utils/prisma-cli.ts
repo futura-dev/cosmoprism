@@ -14,6 +14,9 @@ export const configPath = (context: Context): string =>
 export const schemaPath = (context: Context): string =>
   path.join(contextDir(context), "schema.prisma");
 
+export const migrationsPath = (context: Context): string =>
+  path.join(contextDir(context), "migrations");
+
 export interface ContextTarget {
   central?: boolean;
   tenant?: boolean;
@@ -42,8 +45,9 @@ const npxBin = process.platform === "win32" ? "npx.cmd" : "npx";
 
 export const runPrisma = (
   args: string[],
-  env: NodeJS.ProcessEnv = {}
-): void => {
+  env: NodeJS.ProcessEnv = {},
+  { successExitCodes = [0] }: { successExitCodes?: number[] } = {}
+): number => {
   const result = spawnSync(npxBin, ["prisma", ...args], {
     stdio: "inherit",
     env: { ...process.env, ...env },
@@ -51,19 +55,25 @@ export const runPrisma = (
   });
 
   if (result.error) throw result.error;
-  if (result.status !== 0) {
+  if (result.status === null || !successExitCodes.includes(result.status)) {
     throw new Error(
       `'prisma ${args.join(" ")}' failed with exit code ${result.status}`
     );
   }
+
+  return result.status;
 };
 
 export const prismaGenerate = (
   context: Context,
   env: NodeJS.ProcessEnv = {}
-): void => runPrisma(["generate", `--config=${configPath(context)}`], env);
+): void => {
+  runPrisma(["generate", `--config=${configPath(context)}`], env);
+};
 
 export const prismaSeed = (
   context: Context,
   env: NodeJS.ProcessEnv = {}
-): void => runPrisma(["db", "seed", `--config=${configPath(context)}`], env);
+): void => {
+  runPrisma(["db", "seed", `--config=${configPath(context)}`], env);
+};

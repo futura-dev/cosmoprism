@@ -96,8 +96,6 @@ dbCommand
 // ---------------
 const migrateCommand = program.command("migrate");
 // dbCommand.command('resolve') // TODO: implement
-// dbCommand.command('status') // TODO: implement
-// dbCommand.command('diff') // TODO: implement
 // dev
 migrateCommand
   .command("dev")
@@ -185,6 +183,60 @@ migrateCommand
     const { tenant, central, allTenants } = args[0];
 
     await migrate.deploy({ central, tenant, allTenants });
+  });
+// status
+migrateCommand
+  .command("status")
+  .option("-c, --central", "Check the central database.")
+  .option(
+    "-t, --tenant [tenant-id]",
+    "Check one tenant. Without a value, prompts you for a selection."
+  )
+  .option("--all-tenants", "Check every tenant of the registry.")
+  .action(async (...args) => {
+    const { tenant, central, allTenants } = args[0];
+
+    await migrate.status({ central, tenant, allTenants });
+  });
+// diff
+migrateCommand
+  .command("diff")
+  .option("-c, --central", "Diff the central database.")
+  .option(
+    "-t, --tenant [tenant-id]",
+    "Diff one tenant. Without a value, prompts you for a selection."
+  )
+  .option("--all-tenants", "Diff every tenant of the registry.")
+  .option(
+    "--from <source>",
+    "The source of the diff: empty, schema, migrations or database.",
+    "database"
+  )
+  .option(
+    "--to <source>",
+    "The destination of the diff: empty, schema, migrations or database.",
+    "schema"
+  )
+  .option(
+    "--script",
+    "Render a SQL script instead of the default human readable summary."
+  )
+  .option(
+    "--exit-code",
+    "Exit with code 2 when at least one selected database has a non-empty diff."
+  )
+  .action(async (...args) => {
+    const { tenant, central, allTenants, from, to, script, exitCode } = args[0];
+
+    await migrate.diff({
+      central,
+      tenant,
+      allTenants,
+      from,
+      to,
+      script,
+      exitCode
+    });
   });
 
 // ---------------

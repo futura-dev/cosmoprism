@@ -260,6 +260,9 @@ Command-by-command notes:
   two contexts, call Prisma directly with `npx prisma format --schema=<file>`.
 - **`studio`** opens exactly one database, so its flags stay a choice rather
   than a sum, and `--all-tenants` does not apply.
+- **`migrate status`** and **`migrate diff`** are new, and both are read-only:
+  `status` reports one database at a time and exits 1 when any of them is
+  behind, `diff --exit-code` exits 2 on a non-empty diff.
 - **`--skip-generate` and `--skip-seed`** still exist on `migrate dev` and
   `migrate reset`, but they now opt out of steps *cosmoprism* chains: Prisma ORM
   7 stopped generating and seeding implicitly and dropped its own flags of the
@@ -279,11 +282,12 @@ before upgrading anything live:
 ```shell
 npx @futura-dev/cosmoprism validate -c -t     # schemas parse under Prisma ORM 7
 npx @futura-dev/cosmoprism generate -c -t     # clients land in their new output
-npx @futura-dev/cosmoprism migrate deploy -c --all-tenants
+npx @futura-dev/cosmoprism migrate status -c --all-tenants
 ```
 
-A `migrate deploy` that applies nothing is the sign you are looking for: the
-upgrade changed no database state, and the migration history Prisma reads is the
-one your previous cosmoprism wrote. If it does want to apply something, the
-difference comes from your schema edits in [step 5](#5-schemas), not from the
-upgrade — compare it against your models before letting it run anywhere live.
+A clean `migrate status` is the sign you are looking for: the upgrade changed no
+database state, and the migration history Prisma reads is the one your previous
+cosmoprism wrote. If it reports a database as behind, or if
+`migrate diff -c --script` prints an unexpected statement, the difference comes
+from your schema edits in [step 5](#5-schemas), not from the upgrade — compare
+it against your models before applying anything.
