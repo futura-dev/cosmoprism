@@ -39,7 +39,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@futura-dev/cosmodrome": "^1.5.0-alpha.3",
+    "@futura-dev/cosmodrome": "^1.5.0-alpha.4",
     "@futura-dev/eslint-config-typescript": "^1.0.3",
     "@types/node": "^22.20.1",
     "@types/pg": "^8.21.0",
