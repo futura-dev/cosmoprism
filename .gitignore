@@ -8,3 +8,5 @@ node_modules
 .cosmodrome.json
 
 examples
+# npm pack artifacts
+*.tgz

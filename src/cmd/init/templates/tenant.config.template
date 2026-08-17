@@ -1,0 +1,19 @@
+// Prisma ORM 7 reads schema, migrations and connection URL from this file.
+// Paths are resolved relative to the directory holding this config file,
+// the seed command is run from the root of your project.
+//
+// $TENANT_DATABASE_URL is injected by cosmoprism, once per tenant, with the
+// connection URL read from the tenant table of your central database.
+import "dotenv/config";
+import { defineConfig } from "prisma/config";
+
+export default defineConfig({
+  schema: "schema.prisma",
+  migrations: {
+    path: "migrations",
+    seed: "tsx prisma/tenant/seed.ts"
+  },
+  datasource: {
+    url: process.env.TENANT_DATABASE_URL ?? ""
+  }
+});

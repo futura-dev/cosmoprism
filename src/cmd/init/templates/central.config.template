@@ -1,0 +1,16 @@
+// Prisma ORM 7 reads schema, migrations and connection URL from this file.
+// Paths are resolved relative to the directory holding this config file,
+// the seed command is run from the root of your project.
+import "dotenv/config";
+import { defineConfig } from "prisma/config";
+
+export default defineConfig({
+  schema: "schema.prisma",
+  migrations: {
+    path: "migrations",
+    seed: "tsx prisma/central/seed.ts"
+  },
+  datasource: {
+    url: process.env.CENTRAL_DATABASE_URL ?? ""
+  }
+});

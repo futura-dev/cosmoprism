@@ -1,29 +1,20 @@
-import { spawnSync } from "child_process";
-import path from "path";
+import {
+  ContextTarget,
+  configPath,
+  contextsFrom,
+  runPrisma
+} from "../../utils/prisma-cli";
 
-interface FormatCommand {
-  schema?: string;
+export interface FormatCommand extends ContextTarget {
   check: boolean;
 }
 
 export const format = async (command: FormatCommand): Promise<void> => {
-  const centralSchemaPath = path.join("prisma", "central", "schema.prisma");
-  const tenantSchemaPath = path.join("prisma", "tenant", "schema.prisma");
-
-  const schemasToValidate: string[] = command.schema
-    ? [command.schema]
-    : [centralSchemaPath, tenantSchemaPath];
-
-  for (const schema of schemasToValidate) {
-    const commandArgs = [`--schema=${schema}`];
+  for (const context of contextsFrom(command)) {
+    const commandArgs = [`--config=${configPath(context)}`];
     if (command.check) commandArgs.push("--check");
 
-    spawnSync("npx", ["prisma", "format", ...commandArgs], {
-      shell: true,
-      stdio: "inherit",
-      env: { ...process.env },
-      encoding: "utf-8"
-    });
-    console.log(`schema: ${schema} formatted 🖋️\n`);
+    runPrisma(["format", ...commandArgs]);
+    console.log(`schema formatted for ${context} 🖋️\n`);
   }
 };

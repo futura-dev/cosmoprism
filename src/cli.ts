@@ -30,20 +30,12 @@ program.command("init").action(async () => await init());
 // ---------------
 program
   .command("generate")
-  .option("-t, --tenant [tenant-id]", "Apply generate command only for tenant.")
-  .option("-c, --central", "Apply generate command only for central.")
+  .option("-c, --central", "Generate the central client.")
+  .option("-t, --tenant", "Generate the tenant client.")
   .action(async (...args) => {
     const { tenant, central } = args[0];
-    if (!!tenant && !!central)
-      throw new Error("ERR: Only one of tenant and central can by passed !!");
 
-    await generate(
-      !central && !tenant
-        ? { mode: "all" }
-        : central
-          ? { mode: "central" }
-          : { mode: "tenant", tenant }
-    );
+    await generate({ central, tenant });
   });
 
 // ---------------
@@ -51,11 +43,12 @@ program
 // ---------------
 program
   .command("validate")
-  .option("--schema [file]", "Schema to validate.")
+  .option("-c, --central", "Validate the central schema.")
+  .option("-t, --tenant", "Validate the tenant schema.")
   .action(async (...args) => {
-    const { schema } = args[0];
+    const { tenant, central } = args[0];
 
-    await validate({ schema });
+    await validate({ central, tenant });
   });
 
 // ---------------
@@ -63,15 +56,16 @@ program
 // ---------------
 program
   .command("format")
-  .option("--schema [file]", "Schema to validate.")
+  .option("-c, --central", "Format the central schema.")
+  .option("-t, --tenant", "Format the tenant schema.")
   .option(
     "--check",
-    "	Fails if any files are unformatted. This can be used in CI to detect if the schema is formatted correctly."
+    "Fails if any files are unformatted. This can be used in CI to detect if the schema is formatted correctly."
   )
   .action(async (...args) => {
-    const { schema, check } = args[0];
+    const { tenant, central, check } = args[0];
 
-    await format({ schema, check: !!check });
+    await format({ central, tenant, check: !!check });
   });
 
 // ---------------
@@ -84,20 +78,16 @@ const dbCommand = program.command("db");
 // dbCommand.command('execute') // TODO: implement
 dbCommand
   .command("seed")
-  .option("-t, --tenant [tenant-id]", "Apply generate command only for tenant.")
-  .option("-c, --central", "Apply generate command only for central.")
+  .option("-c, --central", "Seed the central database.")
+  .option(
+    "-t, --tenant [tenant-id]",
+    "Seed one tenant. Without a value, prompts you for a selection."
+  )
+  .option("--all-tenants", "Seed every tenant of the registry.")
   .action(async (...args) => {
-    const { tenant, central } = args[0];
-    if (!!tenant && !!central)
-      throw new Error("ERR: Only one of tenant and central can by passed !!");
+    const { tenant, central, allTenants } = args[0];
 
-    await db.seed(
-      !central && !tenant
-        ? { mode: "all" }
-        : central
-          ? { mode: "central" }
-          : { mode: "tenant", tenant }
-    );
+    await db.seed({ central, tenant, allTenants });
   });
 
 // ---------------
@@ -111,8 +101,12 @@ const migrateCommand = program.command("migrate");
 // dev
 migrateCommand
   .command("dev")
-  .option("-t, --tenant [tenant-id]", "Apply generate command only for tenant.")
-  .option("-c, --central", "Apply generate command only for central.")
+  .option("-c, --central", "Migrate the central database.")
+  .option(
+    "-t, --tenant [tenant-id]",
+    "Migrate one tenant. Without a value, prompts you for a selection."
+  )
+  .option("--all-tenants", "Migrate every tenant of the registry.")
   .option(
     "-n, --name <name>",
     "The name of the migration. If no name is provided, the CLI will prompt you."
@@ -121,66 +115,76 @@ migrateCommand
     "--create-only",
     "Creates a new migration based on the changes in the schema but does not apply that migration. Run migrate dev to apply migration."
   )
-  .option("--skip-seed", "Skip triggering seed.")
+  .option("--skip-seed", "Skip the seed step triggered by cosmoprism.")
   .option(
     "--skip-generate",
-    "Skip triggering generators (for example, Prisma Client)"
+    "Skip the generators step triggered by cosmoprism (for example, Prisma Client)"
   )
   .action(async (...args) => {
-    const { tenant, central, name, createOnly, skipSeed, skipGenerate } =
-      args[0];
-    if (!!tenant && !!central)
-      throw new Error("ERR: Only one of tenant and central can by passed !!");
+    const {
+      tenant,
+      central,
+      allTenants,
+      name,
+      createOnly,
+      skipSeed,
+      skipGenerate
+    } = args[0];
 
-    await migrate.dev(
-      !central && !tenant
-        ? { mode: "all", name, createOnly, skipGenerate, skipSeed }
-        : central
-          ? { mode: "central", name, createOnly, skipGenerate, skipSeed }
-          : { mode: "tenant", tenant, name, createOnly, skipGenerate, skipSeed }
-    );
+    await migrate.dev({
+      central,
+      tenant,
+      allTenants,
+      name,
+      createOnly,
+      skipGenerate,
+      skipSeed
+    });
   });
 // reset
 migrateCommand
   .command("reset")
-  .option("-t, --tenant [tenant-id]", "Apply generate command only for tenant.")
-  .option("-c, --central", "Apply generate command only for central.")
+  .option("-c, --central", "Reset the central database.")
+  .option(
+    "-t, --tenant [tenant-id]",
+    "Reset one tenant. Without a value, prompts you for a selection."
+  )
+  .option("--all-tenants", "Reset every tenant of the registry.")
   .option("-f, --force", "Skip the confirmation prompt.")
-  .option("--skip-seed", "Skip triggering seed.")
+  .option("--skip-seed", "Skip the seed step triggered by cosmoprism.")
   .option(
     "--skip-generate",
-    "Skip triggering generators (for example, Prisma Client)"
+    "Skip the generators step triggered by cosmoprism (for example, Prisma Client)"
   )
   .action(async (...args) => {
-    const { tenant, central, force, skipSeed, skipGenerate } = args[0];
-    if (!!tenant && !!central)
-      throw new Error("ERR: Only one of tenant and central can by passed !!");
+    const { tenant, central, allTenants, force, skipSeed, skipGenerate } =
+      args[0];
 
-    await migrate.reset(
-      !central && !tenant
-        ? { mode: "all", force, skipGenerate, skipSeed }
-        : central
-          ? { mode: "central", force, skipGenerate, skipSeed }
-          : { mode: "tenant", tenant, force, skipGenerate, skipSeed }
-    );
+    await migrate.reset({
+      central,
+      tenant,
+      allTenants,
+      force,
+      skipGenerate,
+      skipSeed
+    });
   });
 // deploy
 migrateCommand
   .command("deploy")
-  .option("-t, --tenant [tenant-id]", "Apply generate command only for tenant.")
-  .option("-c, --central", "Apply generate command only for central.")
+  .option("-c, --central", "Apply pending migrations to the central database.")
+  .option(
+    "-t, --tenant <tenant-id>",
+    "Apply pending migrations to one tenant. A value is required: this command runs unattended and cannot prompt."
+  )
+  .option(
+    "--all-tenants",
+    "Apply pending migrations to every tenant of the registry."
+  )
   .action(async (...args) => {
-    const { tenant, central } = args[0];
-    if (!!tenant && !!central)
-      throw new Error("ERR: Only one of tenant and central can by passed !!");
+    const { tenant, central, allTenants } = args[0];
 
-    await migrate.deploy(
-      !central && !tenant
-        ? { mode: "all" }
-        : central
-          ? { mode: "central" }
-          : { mode: "tenant", tenant }
-    );
+    await migrate.deploy({ central, tenant, allTenants });
   });
 
 // ---------------
@@ -188,21 +192,21 @@ migrateCommand
 // ---------------
 program
   .command("studio")
-  .option("-t, --tenant [tenant-id]", "Apply generate command only for tenant.")
-  .option("-c, --central", "Apply generate command only for central.")
+  .option(
+    "-t, --tenant [tenant-id]",
+    "Open one tenant. Without a value, prompts you for a selection."
+  )
+  .option("-c, --central", "Open the central database.")
   .option("-b, --browser [browser]", "The browser to auto-open Studio in.")
   .option("-p, --port [port]", "The port number to start Studio on.", "5555")
   .action(async (...args) => {
     const { tenant, central, browser, port } = args[0];
-    if (!!tenant && !!central)
-      throw new Error("ERR: Only one of tenant and central can by passed !!");
 
-    await studio(
-      central
-        ? { mode: "central", browser, port }
-        : { mode: "tenant", tenant, browser, port }
-    );
+    await studio({ central, tenant, browser, port });
   });
 
 // parse program
-program.parse(process.argv);
+program.parseAsync(process.argv).catch((error: unknown) => {
+  console.error(`\n${error instanceof Error ? error.message : error}`);
+  process.exit(1);
+});

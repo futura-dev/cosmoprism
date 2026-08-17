@@ -4,19 +4,31 @@ import * as path from "node:path";
 
 const seedContent = "// TODO: place here seeds 🌱🫛!!";
 
+const writeIfMissing = async (
+  filePath: string,
+  content: string | Buffer
+): Promise<void> => {
+  if (!fsSync.existsSync(filePath)) {
+    await fs.writeFile(filePath, content);
+  }
+};
+
 // 1. create the '.cosmoprism.json' config file
 // 2. create 'prisma' directory
 // 3. create 'central' and 'tenant' subdirectories
 // 4. create 'schema.prisma' files
-// 5. create 'seed.ts' files
+// 5. create 'prisma.config.ts' files
+// 6. create 'seed.ts' files
 export const init = async (): Promise<void> => {
   const here = __dirname;
+  const template = (name: string): Promise<Buffer> =>
+    fs.readFile(path.join(here, "templates", name));
 
   // 1.
-  const configContent = await fs.readFile(
-    path.join(here, "templates", ".cosmoprism.json.template")
+  await fs.writeFile(
+    ".cosmoprism.json",
+    await template(".cosmoprism.json.template")
   );
-  await fs.writeFile(".cosmoprism.json", configContent);
   // 2.
   if (!fsSync.existsSync("prisma")) {
     await fs.mkdir("prisma");
@@ -29,31 +41,28 @@ export const init = async (): Promise<void> => {
     await fs.mkdir("prisma/tenant");
   }
   // 4.
-  const centralContent = await fs.readFile(
-    path.join(here, "templates", "central.template")
+  await writeIfMissing(
+    path.join("prisma", "central", "schema.prisma"),
+    await template("central.template")
   );
-  const tenantContent = await fs.readFile(
-    path.join(here, "templates", "tenant.template")
+  await writeIfMissing(
+    path.join("prisma", "tenant", "schema.prisma"),
+    await template("tenant.template")
   );
-  const centralSchemaPath = path.join("prisma", "central", "schema.prisma");
-  if (!fsSync.existsSync(centralSchemaPath)) {
-    await fs.writeFile(centralSchemaPath, centralContent);
-  }
-  const tenantSchemaPath = path.join("prisma", "tenant", "schema.prisma");
-  if (!fsSync.existsSync(tenantSchemaPath)) {
-    await fs.writeFile(tenantSchemaPath, tenantContent);
-  }
   // 5.
-  const centralSeedPath = path.join("prisma", "central", "seed.ts");
-  if (!fsSync.existsSync(centralSeedPath)) {
-    await fs.writeFile(centralSeedPath, seedContent);
-  }
-  const tenantSeedPath = path.join("prisma", "tenant", "seed.ts");
-  if (!fsSync.existsSync(tenantSeedPath)) {
-    await fs.writeFile(tenantSeedPath, seedContent);
-  }
+  await writeIfMissing(
+    path.join("prisma", "central", "prisma.config.ts"),
+    await template("central.config.template")
+  );
+  await writeIfMissing(
+    path.join("prisma", "tenant", "prisma.config.ts"),
+    await template("tenant.config.template")
+  );
+  // 6.
+  await writeIfMissing(path.join("prisma", "central", "seed.ts"), seedContent);
+  await writeIfMissing(path.join("prisma", "tenant", "seed.ts"), seedContent);
 
   console.log(
-    "\nSet the env variable $COSMOPRISM_CENTRAL_DB_URL in your .env file."
+    "\nSet the env variables $TENANT_REGISTRY_DATABASE_URL and $CENTRAL_DATABASE_URL in your .env file."
   );
 };

@@ -1,98 +1,31 @@
-import { spawnSync } from "child_process";
-import inquirer from "inquirer";
-import path from "path";
-import { Sequelize } from "sequelize";
-import * as fs from "node:fs/promises";
-import { loadConfiguration } from "../../../utils/load-configuration";
+import {
+  TENANT_DB_URL_ENV,
+  Target,
+  prismaSeed
+} from "../../../utils/prisma-cli";
+import { resolveTarget } from "../../../utils/tenants";
 
-interface SeedCommandTenant {
-  mode: "tenant";
-  tenant: string | undefined;
-}
-interface SeedCommandCentral {
-  mode: "central";
-}
-interface SeedCommandAll {
-  mode: "all";
-}
-
-export type SeedCommand =
-  | SeedCommandAll
-  | SeedCommandCentral
-  | SeedCommandTenant;
+export type SeedCommand = Target;
 
 export const seed = async (command: SeedCommand): Promise<void> => {
-  if (command.mode === "central" || command.mode === "all") {
+  const { central, tenantUrls } = await resolveTarget(command, {
+    promptable: true
+  });
+
+  if (central) {
     console.log(`\nrunning db seed for central ...`);
-    // run 'npx tsx prisma/central/seed.ts'
-    const centralSeedPath = path.join("prisma", "central", "seed.ts");
-    spawnSync("npx", ["tsx", centralSeedPath], {
-      shell: true,
-      stdio: "inherit",
-      env: { ...process.env },
-      encoding: "utf-8"
-    });
+    prismaSeed("central");
     console.log(`running db seed for central completed 🌱\n`);
   }
 
-  if (command.mode === "all" || command.mode === "tenant") {
-    // choose tenant
-    const tenantUrls: string[] =
-      command.mode !== "all" && typeof command.tenant === "string"
-        ? [command.tenant]
-        : await chooseTenantPrompt();
+  if (tenantUrls.length > 0) {
     console.log(`\nrunning db seed for ${tenantUrls.length} tenants ...\n`);
 
-    const tenantSeedPath = path.join("prisma", "tenant", "seed.ts");
     for (const url of tenantUrls) {
-      // run 'npx tsx prisma/tenant/seed.ts' with 'DATABASE_TENANT_URL' as current tenant url
-      spawnSync("npx", ["tsx", tenantSeedPath], {
-        shell: true,
-        stdio: "inherit",
-        env: { ...process.env, DATABASE_TENANT_URL: url },
-        encoding: "utf-8"
-      });
+      prismaSeed("tenant", { [TENANT_DB_URL_ENV]: url });
       console.log(url, " completed 🌱");
     }
   }
 
   console.log("\nall done 🌱🚀 !!");
-  return;
-};
-
-// TODO: move from here
-const chooseTenantPrompt = async (): Promise<string[]> => {
-  if (typeof process.env.COSMOPRISM_CENTRAL_DB_URL !== "string")
-    throw new Error("missing COSMOPRISM_CENTRAL_DB_URL in .env file");
-
-  const config = await loadConfiguration();
-
-  const sequelize = new Sequelize(process.env.COSMOPRISM_CENTRAL_DB_URL, {
-    dialect: "postgres"
-  });
-  const queryExecution = await sequelize.query(
-    `SELECT * FROM "${config.tenantTable.name}";`,
-    { logging: false }
-  );
-  const queryResult = queryExecution[0];
-  if (!queryResult || queryResult.length === 0) {
-    return [];
-  }
-
-  const res = await inquirer.prompt({
-    tenantIds: {
-      type: "checkbox",
-      required: true,
-      instructions: true,
-      message: "Choose a tenant",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      choices: queryResult.map((item: any) => ({
-        name: item[config.tenantTable.databaseUrlAttributeName],
-        value: item[config.tenantTable.databaseUrlAttributeName],
-        description: item[config.tenantTable.idAttributeName]
-      }))
-    }
-  });
-
-  return res.tenantIds;
 };

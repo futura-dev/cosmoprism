@@ -1,100 +1,46 @@
-import { spawnSync } from "child_process";
-import inquirer from "inquirer";
-import path from "path";
-import { Sequelize } from "sequelize";
-import * as fs from "node:fs/promises";
-import { loadConfiguration } from "../../utils/load-configuration";
+import { configPath, runPrisma } from "../../utils/prisma-cli";
+import { chooseTenant } from "../../utils/tenants";
 
-interface StudioCommandTenant {
-  mode: "tenant";
-  tenant: string | undefined;
-  browser?: string;
-  port?: string;
-}
-interface StudioCommandCentral {
-  mode: "central";
+export interface StudioCommand {
+  central?: boolean;
+  tenant?: string | true;
   browser?: string;
   port?: string;
 }
 
-export const studio = async (
-  command: StudioCommandTenant | StudioCommandCentral
-): Promise<void> => {
-  if (command.mode === "central") {
+export const studio = async (command: StudioCommand): Promise<void> => {
+  const { central, tenant } = command;
+
+  if (!central && !tenant)
+    throw new Error(
+      "ERR: nothing selected. Pass '-c' for central, or '-t [tenant-id]' for a " +
+        "tenant."
+    );
+  if (central && tenant)
+    throw new Error("ERR: Only one of tenant and central can by passed !!");
+
+  const commonArgs: string[] = [];
+  if (command.browser) commonArgs.push("--browser", command.browser);
+  if (command.port) commonArgs.push("--port", command.port);
+
+  if (central) {
     console.log(`\nrunning studio for 'central' ...`);
-    // run 'npx prisma studio --schema=./prisma/central/schema.prisma'
-    const centralSchemaPath = path.join("prisma", "central", "schema.prisma");
-    const commandArgs: string[] = [];
-    commandArgs.push(`--schema=${centralSchemaPath}`);
-    if (command.browser) commandArgs.push(`--browser ${command.browser}`);
-    if (command.port) commandArgs.push(`--port ${command.port}`);
-    spawnSync("npx", ["prisma", "studio", ...commandArgs], {
-      shell: true,
-      stdio: "inherit",
-      env: { ...process.env },
-      encoding: "utf-8"
-    });
+    runPrisma(["studio", `--config=${configPath("central")}`, ...commonArgs]);
+    return;
   }
 
-  if (command.mode === "tenant") {
-    // choose tenant
-    const tenantUrl: string | null =
-      typeof command.tenant === "string"
-        ? command.tenant
-        : await chooseTenantPrompt();
+  const tenantUrl = typeof tenant === "string" ? tenant : await chooseTenant();
 
-    if (tenantUrl === null) {
-      console.log(`\nno tenant found !`);
-      return;
-    }
-
-    const tenantSchemaPath = path.join("prisma", "tenant", "schema.prisma");
-    console.log(`\nrunning studio for 'tenant' ...`);
-    // run 'npx prisma studio --schema=./prisma/tenant/schema.prisma' with 'DATABASE_TENANT_URL' as current tenant url
-    const commandArgs: string[] = [];
-    commandArgs.push(`--schema=${tenantSchemaPath}`);
-    if (command.browser) commandArgs.push(`--browser ${command.browser}`);
-    if (command.port) commandArgs.push(`--port ${command.port}`);
-    spawnSync("npx", ["prisma", "studio", ...commandArgs], {
-      shell: true,
-      stdio: "inherit",
-      env: { ...process.env, DATABASE_TENANT_URL: tenantUrl },
-      encoding: "utf-8"
-    });
+  if (tenantUrl === null) {
+    console.log(`\nno tenant found !`);
+    return;
   }
 
-  return;
-};
-
-// TODO: move from here
-const chooseTenantPrompt = async (): Promise<string | null> => {
-  if (typeof process.env.COSMOPRISM_CENTRAL_DB_URL !== "string")
-    throw new Error("missing COSMOPRISM_CENTRAL_DB_URL in .env file");
-
-  const config = await loadConfiguration();
-
-  const sequelize = new Sequelize(process.env.COSMOPRISM_CENTRAL_DB_URL, {
-    dialect: "postgres"
-  });
-  const queryExecution = await sequelize.query(
-    `SELECT * FROM "${config.tenantTable.name}";`,
-    { logging: false }
-  );
-  const queryResult = queryExecution[0];
-  if (!queryResult || queryResult.length === 0) {
-    return null;
-  }
-
-  const res = await inquirer.prompt({
-    name: "tenantUrl",
-    type: "select",
-    message: "Choose a tenant",
-    choices: queryResult.map((item: any) => ({
-      name: item[config.tenantTable.databaseUrlAttributeName],
-      value: item[config.tenantTable.databaseUrlAttributeName],
-      description: item[config.tenantTable.idAttributeName]
-    }))
-  });
-
-  return res.tenantUrl;
+  console.log(`\nrunning studio for 'tenant' ...`);
+  runPrisma([
+    "studio",
+    `--config=${configPath("tenant")}`,
+    `--url=${tenantUrl}`,
+    ...commonArgs
+  ]);
 };
