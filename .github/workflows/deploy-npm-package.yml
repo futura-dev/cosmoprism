@@ -2,11 +2,17 @@ name: Publish Package to npmjs
 
 on:
   release:
-    types: [released]
+    types: [released, prereleased]
+
+permissions:  
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NPM_TAG: ${{ github.event.action == 'prereleased' && 'alpha' || 'latest' }}
     steps:
       - uses: actions/checkout@v3
       # Setup .npmrc file to publish to npm
@@ -16,6 +22,4 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm i
       - run: npm run build
-      - run: npm publish --access public --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish --access public --tag $NPM_TAG
